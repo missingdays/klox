@@ -1,5 +1,5 @@
 # this file defines AST types for lox grammar
 Binary: left: Expr, operator: Token, right: Expr
-Grouping: experession: Expr
-Literal: value: Any
+Grouping: expression: Expr
+Literal: value: Any?
 Unary: operator: Token, right: Expr

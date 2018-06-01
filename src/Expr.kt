@@ -23,9 +23,9 @@ abstract class Expr {
   }
 
   class Grouping : Expr {
-    val experession: Expr
-    constructor(experession: Expr) {
-      this.experession = experession
+    val expression: Expr
+    constructor(expression: Expr) {
+      this.expression = expression
     }
 
     override fun<R> accept(visitor: Visitor<R>) : R { 
@@ -34,8 +34,8 @@ abstract class Expr {
   }
 
   class Literal : Expr {
-    val value: Any
-    constructor(value: Any) {
+    val value: Any?
+    constructor(value: Any?) {
       this.value = value
     }
 
