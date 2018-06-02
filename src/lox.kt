@@ -5,6 +5,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 var hadError = false
+var hadRuntimeError = false
 
 fun main(args: Array<String> ) {
     when {
@@ -20,6 +21,10 @@ private fun runFile(path: String) {
 
     if (hadError) {
         System.exit(65)
+    }
+
+    if (hadRuntimeError) {
+        System.exit(70)
     }
 }
 
@@ -41,9 +46,14 @@ private fun run(source: String) {
     val parser = Parser(tokens)
     val expression = parser.parse()
 
-    if (hadError) return
+    if (hadError) {
+        return
+    }
 
-    println(AstPrinter().print(expression!!))
+    val interpreter = Interpreter()
+    interpreter.interpret(expression!!)
+
+    if (hadError) return
 }
 
 fun parseError(token: Token, message: String) {
@@ -52,6 +62,12 @@ fun parseError(token: Token, message: String) {
     } else {
         report(token.line, " at '${token.lexeme}'", message)
     }
+}
+
+fun runtimeError(error: LoxRuntimeError) {
+    println("${error.message}")
+    println("[line ${error.token.line}]")
+    hadRuntimeError = true
 }
 
 fun error(line: Int, message: String) {

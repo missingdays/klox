@@ -24,7 +24,7 @@ def create_ast(baseclass, grammar_file):
 	for _type in types:
 		create_type(name=_type.name, fields=_type.fields, baseclass=baseclass)
 
-	print("  abstract fun<R> accept(visitor: Visitor<R>) : R")
+	print("  abstract fun<R> accept(visitor: Visitor<R>) : R?")
 
 	print("}")
 
@@ -41,7 +41,7 @@ def create_type(name, fields, baseclass):
 	print('    }')
 
 	print("")
-	print("    override fun<R> accept(visitor: Visitor<R>) : R { ")
+	print("    override fun<R> accept(visitor: Visitor<R>) : R? { ")
 	print(f"      return visitor.visit{name}{baseclass}(this)")
 	print("    }")
 
@@ -51,7 +51,7 @@ def create_type(name, fields, baseclass):
 def create_visitor(baseclass, types):
 	print("  interface Visitor<R> {")
 	for _type in types:
-		print(f"    fun visit{_type.name}{baseclass} ({baseclass.lower()}: {_type.name}) : R")
+		print(f"    fun visit{_type.name}{baseclass} ({baseclass.lower()}: {_type.name}) : R?")
 	print("  }")
 	print("")
 

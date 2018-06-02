@@ -1,10 +1,10 @@
 // THIS FILE IS AUTO GENERATED. SEE tool/lox_ast_types.txt
 abstract class Expr {
   interface Visitor<R> {
-    fun visitBinaryExpr (expr: Binary) : R
-    fun visitGroupingExpr (expr: Grouping) : R
-    fun visitLiteralExpr (expr: Literal) : R
-    fun visitUnaryExpr (expr: Unary) : R
+    fun visitBinaryExpr (expr: Binary) : R?
+    fun visitGroupingExpr (expr: Grouping) : R?
+    fun visitLiteralExpr (expr: Literal) : R?
+    fun visitUnaryExpr (expr: Unary) : R?
   }
 
   class Binary : Expr {
@@ -17,7 +17,7 @@ abstract class Expr {
       this.right = right
     }
 
-    override fun<R> accept(visitor: Visitor<R>) : R { 
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitBinaryExpr(this)
     }
   }
@@ -28,7 +28,7 @@ abstract class Expr {
       this.expression = expression
     }
 
-    override fun<R> accept(visitor: Visitor<R>) : R { 
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitGroupingExpr(this)
     }
   }
@@ -39,7 +39,7 @@ abstract class Expr {
       this.value = value
     }
 
-    override fun<R> accept(visitor: Visitor<R>) : R { 
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitLiteralExpr(this)
     }
   }
@@ -52,10 +52,10 @@ abstract class Expr {
       this.right = right
     }
 
-    override fun<R> accept(visitor: Visitor<R>) : R { 
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitUnaryExpr(this)
     }
   }
 
-  abstract fun<R> accept(visitor: Visitor<R>) : R
+  abstract fun<R> accept(visitor: Visitor<R>) : R?
 }
