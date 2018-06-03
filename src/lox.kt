@@ -7,6 +7,8 @@ import java.nio.file.Paths
 var hadError = false
 var hadRuntimeError = false
 
+val interpreter = Interpreter()
+
 fun main(args: Array<String> ) {
     when {
         args.size > 1 -> println("Usage: jlox [script]")
@@ -44,14 +46,13 @@ private fun run(source: String) {
     val tokens = scanner.scanTokens()
 
     val parser = Parser(tokens)
-    val expression = parser.parse()
+    val statements = parser.parse()
 
     if (hadError) {
         return
     }
 
-    val interpreter = Interpreter()
-    interpreter.interpret(expression!!)
+    interpreter.interpret(statements)
 
     if (hadError) return
 }

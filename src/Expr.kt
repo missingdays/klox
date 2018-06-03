@@ -1,10 +1,25 @@
-// THIS FILE IS AUTO GENERATED. SEE tool/lox_ast_types.txt
+// THIS FILE IS AUTO GENERATED. SEE tool/generate_ast.py
 abstract class Expr {
   interface Visitor<R> {
+    fun visitAssignExpr (expr: Assign) : R?
     fun visitBinaryExpr (expr: Binary) : R?
     fun visitGroupingExpr (expr: Grouping) : R?
     fun visitLiteralExpr (expr: Literal) : R?
     fun visitUnaryExpr (expr: Unary) : R?
+    fun visitVariableExpr (expr: Variable) : R?
+  }
+
+  class Assign : Expr {
+    val name: Token
+    val value: Expr?
+    constructor(name: Token, value: Expr?) {
+      this.name = name
+      this.value = value
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitAssignExpr(this)
+    }
   }
 
   class Binary : Expr {
@@ -54,6 +69,17 @@ abstract class Expr {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitUnaryExpr(this)
+    }
+  }
+
+  class Variable : Expr {
+    val name: Token
+    constructor(name: Token) {
+      this.name = name
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitVariableExpr(this)
     }
   }
 

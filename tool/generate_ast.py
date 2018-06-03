@@ -5,7 +5,7 @@ Type = namedtuple('Type', 'name fields'.split())
 
 def create_ast(baseclass, grammar_file):
 
-	print("// THIS FILE IS AUTO GENERATED. SEE tool/lox_ast_types.txt")
+	print("// THIS FILE IS AUTO GENERATED. SEE tool/generate_ast.py")
 	
 	print(f"abstract class {baseclass} " + "{")
 

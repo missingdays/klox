@@ -1,12 +1,33 @@
-class Interpreter : Expr.Visitor<Any> {
+class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
-    fun interpret(expression: Expr) {
+    var enviroment = Enviroment()
+
+    fun interpret(statements: List<Stmt?>) {
         try {
-            val value = evaluate(expression)
-            println(stringify(value))
+            for (statement in statements) {
+                execute(statement!!)
+            }
         } catch (error: LoxRuntimeError) {
             runtimeError(error)
         }
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var): Void? {
+        val value = if (stmt.initializer != null) evaluate(stmt.initializer) else null
+
+        enviroment.define(stmt.name.lexeme, value)
+        return null
+    }
+
+    override fun visitAssignExpr(expr: Expr.Assign): Any? {
+        val value = if (expr.value == null) null else evaluate(expr.value)
+
+        enviroment.assign(expr.name, value)
+        return value
+    }
+
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return enviroment.get(expr.name)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
@@ -84,8 +105,42 @@ class Interpreter : Expr.Visitor<Any> {
         return null
     }
 
+    override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
+        evaluate(stmt.expression)
+        return null
+    }
+
+    override fun visitPrintStmt(stmt: Stmt.Print): Void? {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
+        return null
+    }
+
+    override fun visitBlockStmt(stmt: Stmt.Block): Void? {
+        executeBlock(stmt.statements, Enviroment(enviroment))
+        return null
+    }
+
+    private fun executeBlock(statements: List<Stmt?>, enviroment: Enviroment) {
+        val previous = this.enviroment
+
+        try {
+            this.enviroment = enviroment
+
+            for(statement in statements) {
+                execute(statement!!)
+            }
+        } finally {
+            this.enviroment = enviroment
+        }
+    }
+
     private fun evaluate(expr: Expr) : Any? {
         return expr.accept(this)
+    }
+
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
     }
 
     private fun isTruthy(value: Any?) : Boolean {
