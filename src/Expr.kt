@@ -13,8 +13,8 @@ abstract class Expr {
 
   class Assign : Expr {
     val name: Token
-    val value: Expr?
-    constructor(name: Token, value: Expr?) {
+    val value: Expr
+    constructor(name: Token, value: Expr) {
       this.name = name
       this.value = value
     }

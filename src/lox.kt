@@ -52,6 +52,13 @@ private fun run(source: String) {
         return
     }
 
+    val resolver = Resolver(interpreter)
+    resolver.resolve(statements)
+
+    if (hadError) {
+        return
+    }
+
     interpreter.interpret(statements)
 
     if (hadError) return

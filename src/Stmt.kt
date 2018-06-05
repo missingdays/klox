@@ -12,8 +12,8 @@ abstract class Stmt {
   }
 
   class Block : Stmt {
-    val statements: List<Stmt?>
-    constructor(statements: List<Stmt?>) {
+    val statements: List<Stmt>
+    constructor(statements: List<Stmt>) {
       this.statements = statements
     }
 
@@ -36,8 +36,8 @@ abstract class Stmt {
   class Function : Stmt {
     val name: Token
     val parameters: List<Token>
-    val body: List<Stmt?>
-    constructor(name: Token, parameters: List<Token>, body: List<Stmt?>) {
+    val body: List<Stmt>
+    constructor(name: Token, parameters: List<Token>, body: List<Stmt>) {
       this.name = name
       this.parameters = parameters
       this.body = body

@@ -1,9 +1,9 @@
-import sun.util.resources.cldr.xog.LocaleNames_xog
-
 class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
-    val globals = Enviroment()
-    var environment = globals
+    private val globals = Environment()
+    private var environment = globals
+
+    private val locals = HashMap<Expr, Int>()
 
     constructor() {
         globals.define("clock", object : LoxCallable {
@@ -48,6 +48,10 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
         }
     }
 
+    fun resolve(expr: Expr, depth: Int) {
+        locals.put(expr, depth)
+    }
+
     override fun visitVarStmt(stmt: Stmt.Var): Void? {
         val value = if (stmt.initializer != null) evaluate(stmt.initializer) else null
 
@@ -63,12 +67,18 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = if (expr.value == null) null else evaluate(expr.value)
 
-        environment.assign(expr.name, value)
+        val distance = locals[expr]
+        if (distance != null) {
+            environment.assignAt(distance, expr.name, value)
+        } else {
+            globals.assign(expr.name, value)
+        }
+
         return value
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return environment.get(expr.name)
+        return lookUpVariable(expr.name, expr)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
@@ -158,7 +168,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block): Void? {
-        executeBlock(stmt.statements, Enviroment(environment))
+        executeBlock(stmt.statements, Environment(environment))
         return null
     }
 
@@ -224,7 +234,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
         return null
     }
 
-    fun executeBlock(statements: List<Stmt?>, environment: Enviroment) {
+    fun executeBlock(statements: List<Stmt?>, environment: Environment) {
         val previous = this.environment
 
         try {
@@ -244,6 +254,16 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
     private fun execute(stmt: Stmt) {
         stmt.accept(this)
+    }
+
+    private fun lookUpVariable(name: Token, expr: Expr) : Any? {
+        val distance = locals[expr]
+
+        if (distance != null) {
+            return environment.getAt(distance, name.lexeme)
+        } else {
+            return globals.get(name)
+        }
     }
 
     private fun isTruthy(value: Any?) : Boolean {

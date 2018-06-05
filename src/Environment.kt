@@ -1,12 +1,12 @@
-class Enviroment {
-    val enclosing: Enviroment?
-    val values = HashMap<String, Any?>()
+class Environment {
+    private val enclosing: Environment?
+    private val values = HashMap<String, Any?>()
 
     constructor() {
         enclosing = null
     }
 
-    constructor(enclosing: Enviroment) {
+    constructor(enclosing: Environment) {
         this.enclosing = enclosing
     }
 
@@ -28,6 +28,10 @@ class Enviroment {
         throw LoxRuntimeError(name, "Undefined variable ${name.lexeme}")
     }
 
+    fun assignAt(distance: Int, name: Token, value: Any?) {
+        ancestor(distance).values[name.lexeme] = value
+    }
+
     fun get(name: Token) : Any? {
         if (values.containsKey(name.lexeme)) {
             return values.get(name.lexeme)
@@ -38,5 +42,20 @@ class Enviroment {
         }
 
         throw LoxRuntimeError(name, "Undefined variable ${name.lexeme}")
+    }
+
+    fun getAt(distance: Int, name: String) : Any? {
+        return ancestor(distance).values[name]
+    }
+
+    private fun ancestor(distance: Int) : Environment {
+        var environment: Environment = this
+
+        for (i in 0 until distance) {
+            // Distance is calculated the way so we never will reach enclosing that is null
+            environment = environment.enclosing!!
+        }
+
+        return environment
     }
 }

@@ -150,11 +150,14 @@ class Parser {
         return Stmt.Print(value)
     }
 
-    private fun block() : List<Stmt?> {
-        val statements = ArrayList<Stmt?>()
+    private fun block() : List<Stmt> {
+        val statements = ArrayList<Stmt>()
 
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(declaration())
+            val decl = declaration()
+            if (decl != null) {
+                statements.add(decl)
+            }
         }
 
         consume(TokenType.RIGHT_BRACE, "Expected } after block")
@@ -176,15 +179,15 @@ class Parser {
     }
 
     private fun expression() : Expr {
-        return assigment()
+        return assignment()
     }
 
-    private fun assigment() : Expr {
+    private fun assignment() : Expr {
         val expr = or()
 
         if (match(TokenType.EQUAL)) {
             val equals = previous()
-            val value = assigment()
+            val value = assignment()
 
             if (expr is Expr.Variable) {
                 val name = (expr as Expr.Variable).name
