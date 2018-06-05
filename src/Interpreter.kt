@@ -1,11 +1,47 @@
+import sun.util.resources.cldr.xog.LocaleNames_xog
+
 class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
-    var enviroment = Enviroment()
+    val globals = Enviroment()
+    var environment = globals
 
-    fun interpret(statements: List<Stmt?>) {
+    constructor() {
+        globals.define("clock", object : LoxCallable {
+            override fun arity() : Int {
+                return 0
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                return System.currentTimeMillis() / 1000.0
+            }
+        })
+
+        globals.define("input", object : LoxCallable {
+            override fun arity(): Int {
+                return 0
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                return readLine()
+            }
+        })
+
+        globals.define("parseNumber", object : LoxCallable {
+            override fun arity(): Int {
+                return 1
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                val number = arguments[0] as String
+                return number.toDouble()
+            }
+        })
+    }
+
+    fun interpret(statements: List<Stmt>) {
         try {
             for (statement in statements) {
-                execute(statement!!)
+                execute(statement)
             }
         } catch (error: LoxRuntimeError) {
             runtimeError(error)
@@ -15,19 +51,24 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     override fun visitVarStmt(stmt: Stmt.Var): Void? {
         val value = if (stmt.initializer != null) evaluate(stmt.initializer) else null
 
-        enviroment.define(stmt.name.lexeme, value)
+        environment.define(stmt.name.lexeme, value)
         return null
+    }
+
+    override fun visitReturnStmt(stmt: Stmt.Return): Void? {
+        val value = if (stmt.value != null) evaluate(stmt.value) else null
+        throw Return(value)
     }
 
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = if (expr.value == null) null else evaluate(expr.value)
 
-        enviroment.assign(expr.name, value)
+        environment.assign(expr.name, value)
         return value
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return enviroment.get(expr.name)
+        return environment.get(expr.name)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
@@ -117,21 +158,83 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block): Void? {
-        executeBlock(stmt.statements, Enviroment(enviroment))
+        executeBlock(stmt.statements, Enviroment(environment))
         return null
     }
 
-    private fun executeBlock(statements: List<Stmt?>, enviroment: Enviroment) {
-        val previous = this.enviroment
+    override fun visitIfStmt(stmt: Stmt.If): Void? {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch)
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch)
+        }
+
+        return null
+    }
+
+    override fun visitWhileStmt(stmt: Stmt.While): Void? {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body)
+        }
+
+        return null
+    }
+
+    override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+        val left = evaluate(expr.left)
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) {
+                return left
+            }
+        } else if (expr.operator.type == TokenType.AND) {
+            if (!isTruthy(left)) {
+                return left
+            }
+        }
+
+        return evaluate(expr.right)
+    }
+
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val callee = evaluate(expr.callee)
+
+        val arguments = ArrayList<Any?>()
+
+        for (argument in expr.arguments) {
+            arguments.add(evaluate(argument))
+        }
+
+        if (callee !is LoxCallable) {
+            throw LoxRuntimeError(expr.paren, "Can only call functions and classes")
+        }
+
+        val function = callee as LoxCallable
+
+        if (arguments.size != function.arity()) {
+            throw LoxRuntimeError(expr.paren, "Expected ${function.arity()} arguments but got ${arguments.size}")
+        }
+
+        return function.call(this, arguments)
+    }
+
+    override fun visitFunctionStmt(stmt: Stmt.Function): Void? {
+        val function = LoxFunction(stmt, this.environment)
+        environment.define(stmt.name.lexeme, function)
+        return null
+    }
+
+    fun executeBlock(statements: List<Stmt?>, environment: Enviroment) {
+        val previous = this.environment
 
         try {
-            this.enviroment = enviroment
+            this.environment = environment
 
             for(statement in statements) {
                 execute(statement!!)
             }
         } finally {
-            this.enviroment = enviroment
+            this.environment = previous
         }
     }
 

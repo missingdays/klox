@@ -3,8 +3,10 @@ abstract class Expr {
   interface Visitor<R> {
     fun visitAssignExpr (expr: Assign) : R?
     fun visitBinaryExpr (expr: Binary) : R?
+    fun visitCallExpr (expr: Call) : R?
     fun visitGroupingExpr (expr: Grouping) : R?
     fun visitLiteralExpr (expr: Literal) : R?
+    fun visitLogicalExpr (expr: Logical) : R?
     fun visitUnaryExpr (expr: Unary) : R?
     fun visitVariableExpr (expr: Variable) : R?
   }
@@ -37,6 +39,21 @@ abstract class Expr {
     }
   }
 
+  class Call : Expr {
+    val callee: Expr
+    val paren: Token
+    val arguments: List<Expr>
+    constructor(callee: Expr, paren: Token, arguments: List<Expr>) {
+      this.callee = callee
+      this.paren = paren
+      this.arguments = arguments
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitCallExpr(this)
+    }
+  }
+
   class Grouping : Expr {
     val expression: Expr
     constructor(expression: Expr) {
@@ -56,6 +73,21 @@ abstract class Expr {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitLiteralExpr(this)
+    }
+  }
+
+  class Logical : Expr {
+    val left: Expr
+    val operator: Token
+    val right: Expr
+    constructor(left: Expr, operator: Token, right: Expr) {
+      this.left = left
+      this.operator = operator
+      this.right = right
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitLogicalExpr(this)
     }
   }
 

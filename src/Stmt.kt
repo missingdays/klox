@@ -3,8 +3,12 @@ abstract class Stmt {
   interface Visitor<R> {
     fun visitBlockStmt (stmt: Block) : R?
     fun visitExpressionStmt (stmt: Expression) : R?
+    fun visitFunctionStmt (stmt: Function) : R?
     fun visitPrintStmt (stmt: Print) : R?
+    fun visitReturnStmt (stmt: Return) : R?
+    fun visitIfStmt (stmt: If) : R?
     fun visitVarStmt (stmt: Var) : R?
+    fun visitWhileStmt (stmt: While) : R?
   }
 
   class Block : Stmt {
@@ -29,6 +33,21 @@ abstract class Stmt {
     }
   }
 
+  class Function : Stmt {
+    val name: Token
+    val parameters: List<Token>
+    val body: List<Stmt?>
+    constructor(name: Token, parameters: List<Token>, body: List<Stmt?>) {
+      this.name = name
+      this.parameters = parameters
+      this.body = body
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitFunctionStmt(this)
+    }
+  }
+
   class Print : Stmt {
     val expression: Expr
     constructor(expression: Expr) {
@@ -37,6 +56,34 @@ abstract class Stmt {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitPrintStmt(this)
+    }
+  }
+
+  class Return : Stmt {
+    val keyword: Token
+    val value: Expr?
+    constructor(keyword: Token, value: Expr?) {
+      this.keyword = keyword
+      this.value = value
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitReturnStmt(this)
+    }
+  }
+
+  class If : Stmt {
+    val condition: Expr
+    val thenBranch: Stmt
+    val elseBranch: Stmt?
+    constructor(condition: Expr, thenBranch: Stmt, elseBranch: Stmt?) {
+      this.condition = condition
+      this.thenBranch = thenBranch
+      this.elseBranch = elseBranch
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitIfStmt(this)
     }
   }
 
@@ -50,6 +97,19 @@ abstract class Stmt {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitVarStmt(this)
+    }
+  }
+
+  class While : Stmt {
+    val condition: Expr
+    val body: Stmt
+    constructor(condition: Expr, body: Stmt) {
+      this.condition = condition
+      this.body = body
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitWhileStmt(this)
     }
   }
 

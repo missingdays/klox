@@ -1,4 +1,8 @@
 Block: statements: List<Stmt?>
 Expression: expression: Expr
+Function: name: Token, parameters: List<Token>, body: List<Stmt?>
 Print: expression: Expr
+Return: keyword: Token, value: Expr?
+If: condition: Expr, thenBranch: Stmt, elseBranch: Stmt?
 Var: name: Token, initializer: Expr?
+While: condition: Expr, body: Stmt

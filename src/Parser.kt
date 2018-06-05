@@ -8,11 +8,14 @@ class Parser {
         this.tokens = tokens
     }
 
-    fun parse() : List<Stmt?> {
-        val statements = ArrayList<Stmt?>()
+    fun parse() : List<Stmt> {
+        val statements = ArrayList<Stmt>()
 
         while (!isAtEnd()) {
-            statements.add(declaration())
+            val decl = declaration()
+            if (decl != null) {
+                statements.add(decl)
+            }
         }
 
         return statements
@@ -22,6 +25,10 @@ class Parser {
         try {
             if (match(TokenType.VAR)) {
                 return varDeclaration()
+            }
+
+            if (match(TokenType.FUN)) {
+                return function("function")
             }
 
             return statement()
@@ -39,16 +46,102 @@ class Parser {
         return Stmt.Var(name, initializer)
     }
 
+    private fun function(kind: String) : Stmt.Function {
+        val name = consume(TokenType.IDENTIFIER, "Expected ${kind} name")
+        consume(TokenType.LEFT_PAREN, "Expected '(' after ${kind} name")
+
+        val parameters = ArrayList<Token>()
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size >= 8) {
+                    error(peek(), "Cannot have more than 8 parameters")
+                }
+
+                parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name"))
+            } while (match(TokenType.COMMA))
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters")
+
+        consume(TokenType.LEFT_BRACE, "Expected '{' before ${kind} body")
+        val body = block()
+        return Stmt.Function(name, parameters, body)
+    }
+
     private fun statement() : Stmt {
+        if (match(TokenType.WHILE)) {
+            return whileStatement()
+        }
+
+        if (match(TokenType.IF)) {
+            return ifStatement()
+        }
+
         if (match(TokenType.PRINT)) {
             return printStatement()
+        }
+
+        if (match(TokenType.FOR)) {
+            return forStatement()
         }
 
         if (match(TokenType.LEFT_BRACE)) {
             return Stmt.Block(block())
         }
 
+        if (match(TokenType.RETURN)) {
+            return returnStatement()
+        }
+
         return expressionStatement()
+    }
+
+    private fun whileStatement() : Stmt {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after 'while' condition")
+
+        val body = statement()
+
+        return Stmt.While(condition, body)
+    }
+
+    private fun forStatement() : Stmt {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'")
+
+        val initializer = if (match(TokenType.SEMICOLON)) null else if (match(TokenType.VAR)) varDeclaration() else expressionStatement()
+        var condition = if (check(TokenType.SEMICOLON)) null else expression()
+        consume(TokenType.SEMICOLON, "Expected ';' after loop condition")
+
+        val increment = if (check(TokenType.RIGHT_PAREN)) null else expression()
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after 'for' clause")
+
+        var body = statement()
+
+        if (increment != null) {
+            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+        }
+
+        if (condition == null) {
+            condition = Expr.Literal(true)
+        }
+        body = Stmt.While(condition, body)
+
+        if (initializer != null) {
+            body = Stmt.Block(listOf(initializer, body))
+        }
+
+        return body
+    }
+
+    private fun ifStatement() : Stmt {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after 'if' condition")
+
+        val thenBranch = statement()
+        val elseBranch = if (match(TokenType.ELSE)) statement() else null
+
+        return Stmt.If(condition, thenBranch, elseBranch)
     }
 
     private fun printStatement() : Stmt {
@@ -74,12 +167,20 @@ class Parser {
         return Stmt.Expression(expr)
     }
 
+    private fun returnStatement() : Stmt {
+        val keyword = previous()
+        val value = if (check(TokenType.SEMICOLON)) null else expression()
+
+        consume(TokenType.SEMICOLON, "Expected ';' after return value")
+        return Stmt.Return(keyword, value)
+    }
+
     private fun expression() : Expr {
         return assigment()
     }
 
     private fun assigment() : Expr {
-        val expr = equality()
+        val expr = or()
 
         if (match(TokenType.EQUAL)) {
             val equals = previous()
@@ -91,6 +192,30 @@ class Parser {
             }
 
             error(equals, "Invalid assigment target")
+        }
+
+        return expr
+    }
+
+    private fun or() : Expr {
+        var expr = and()
+
+        while (match(TokenType.OR)) {
+            val operator = previous()
+            val right = and()
+            expr = Expr.Logical(expr, operator, right)
+        }
+
+        return expr
+    }
+
+    private fun and() : Expr {
+        var expr = equality()
+
+        while (match(TokenType.AND)) {
+            val operator = previous()
+            val right = equality()
+            expr = Expr.Logical(expr, operator, right)
         }
 
         return expr
@@ -151,7 +276,35 @@ class Parser {
             return Expr.Unary(operator, right)
         }
 
-        return primary()
+        return call()
+    }
+
+    private fun call() : Expr {
+        var expr = primary()
+
+        while (match(TokenType.LEFT_PAREN)) {
+            expr = finishCall(expr)
+        }
+
+        return expr
+    }
+
+    private fun finishCall(callee: Expr) : Expr {
+        val arguments =  ArrayList<Expr>()
+
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.size >= 8) {
+                    error(peek(), "Cannot have more than 8 arguments")
+                }
+
+                arguments.add(expression())
+            } while (match(TokenType.COMMA))
+        }
+
+        val paren = consume(TokenType.RIGHT_PAREN, "Expected ')' after function arguments")
+
+        return Expr.Call(callee, paren, arguments)
     }
 
     private fun primary() : Expr {
