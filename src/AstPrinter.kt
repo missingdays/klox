@@ -39,6 +39,18 @@ class AstPrinter: Expr.Visitor<String> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun visitGetExpr(expr: Expr.Get): String? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): String? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun visitThisExpr(expr: Expr.This): String? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     fun parenthesize(name: String, vararg exprs: Expr) : String{
         val builder = StringBuilder()
 

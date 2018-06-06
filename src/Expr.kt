@@ -4,9 +4,12 @@ abstract class Expr {
     fun visitAssignExpr (expr: Assign) : R?
     fun visitBinaryExpr (expr: Binary) : R?
     fun visitCallExpr (expr: Call) : R?
+    fun visitGetExpr (expr: Get) : R?
     fun visitGroupingExpr (expr: Grouping) : R?
     fun visitLiteralExpr (expr: Literal) : R?
     fun visitLogicalExpr (expr: Logical) : R?
+    fun visitSetExpr (expr: Set) : R?
+    fun visitThisExpr (expr: This) : R?
     fun visitUnaryExpr (expr: Unary) : R?
     fun visitVariableExpr (expr: Variable) : R?
   }
@@ -54,6 +57,19 @@ abstract class Expr {
     }
   }
 
+  class Get : Expr {
+    val obj: Expr
+    val name: Token
+    constructor(obj: Expr, name: Token) {
+      this.obj = obj
+      this.name = name
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitGetExpr(this)
+    }
+  }
+
   class Grouping : Expr {
     val expression: Expr
     constructor(expression: Expr) {
@@ -88,6 +104,32 @@ abstract class Expr {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitLogicalExpr(this)
+    }
+  }
+
+  class Set : Expr {
+    val obj: Expr
+    val name: Token
+    val value: Expr
+    constructor(obj: Expr, name: Token, value: Expr) {
+      this.obj = obj
+      this.name = name
+      this.value = value
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitSetExpr(this)
+    }
+  }
+
+  class This : Expr {
+    val keyword: Token
+    constructor(keyword: Token) {
+      this.keyword = keyword
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitThisExpr(this)
     }
   }
 

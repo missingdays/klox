@@ -1,4 +1,5 @@
 Block: statements: List<Stmt>
+Class: name: Token, methods: List<Stmt.Function>
 Expression: expression: Expr
 Function: name: Token, parameters: List<Token>, body: List<Stmt>
 Print: expression: Expr

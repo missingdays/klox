@@ -31,6 +31,10 @@ class Parser {
                 return function("function")
             }
 
+            if (match(TokenType.CLASS)) {
+                return classDeclaration()
+            }
+
             return statement()
         } catch (error: ParseError) {
             synchronize()
@@ -65,6 +69,21 @@ class Parser {
         consume(TokenType.LEFT_BRACE, "Expected '{' before ${kind} body")
         val body = block()
         return Stmt.Function(name, parameters, body)
+    }
+
+    private fun classDeclaration() : Stmt {
+        val name = consume(TokenType.IDENTIFIER, "Expected class name")
+        consume(TokenType.LEFT_BRACE, "Expected '{' after class name")
+
+        val methods = ArrayList<Stmt.Function>()
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"))
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expected '}' after class body")
+
+        return Stmt.Class(name, methods)
     }
 
     private fun statement() : Stmt {
@@ -190,11 +209,13 @@ class Parser {
             val value = assignment()
 
             if (expr is Expr.Variable) {
-                val name = (expr as Expr.Variable).name
+                val name = expr.name
                 return Expr.Assign(name, value)
+            } else if (expr is Expr.Get) {
+                return Expr.Set(expr.obj, expr.name, value)
             }
 
-            error(equals, "Invalid assigment target")
+            error(equals, "Invalid assignment target")
         }
 
         return expr
@@ -285,8 +306,15 @@ class Parser {
     private fun call() : Expr {
         var expr = primary()
 
-        while (match(TokenType.LEFT_PAREN)) {
-            expr = finishCall(expr)
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr)
+            } else if (match(TokenType.DOT)) {
+                val name = consume(TokenType.IDENTIFIER, "Expected property name after '.'")
+                expr = Expr.Get(expr, name)
+            } else {
+                break
+            }
         }
 
         return expr
@@ -329,6 +357,10 @@ class Parser {
 
         if (match(TokenType.IDENTIFIER)) {
             return Expr.Variable(previous())
+        }
+
+        if (match(TokenType.THIS)) {
+            return Expr.This(previous())
         }
 
         if (match(TokenType.LEFT_PAREN)) {

@@ -219,7 +219,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
             throw LoxRuntimeError(expr.paren, "Can only call functions and classes")
         }
 
-        val function = callee as LoxCallable
+        val function = callee
 
         if (arguments.size != function.arity()) {
             throw LoxRuntimeError(expr.paren, "Expected ${function.arity()} arguments but got ${arguments.size}")
@@ -229,9 +229,51 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function): Void? {
-        val function = LoxFunction(stmt, this.environment)
+        val function = LoxFunction(stmt, this.environment, false)
         environment.define(stmt.name.lexeme, function)
         return null
+    }
+
+    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+        environment.define(stmt.name.lexeme, null)
+
+        val methods = HashMap<String, LoxFunction>()
+        for (method in stmt.methods) {
+            val function = LoxFunction(method, environment, method.name.lexeme == "name")
+            methods.put(method.name.lexeme, function)
+        }
+
+
+        val loxClass = LoxClass(stmt.name.lexeme, methods)
+
+        environment.assign(stmt.name, loxClass)
+        return null
+    }
+
+    override fun visitThisExpr(expr: Expr.This): Any? {
+        return lookUpVariable(expr.keyword, expr)
+    }
+
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+        val obj = evaluate(expr.obj)
+
+        if (obj is LoxInstance) {
+            return obj.get(expr.name)
+        }
+
+        throw LoxRuntimeError(expr.name, "Only instances have properties")
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+        val obj = evaluate(expr.obj)
+
+        if (obj !is LoxInstance) {
+            throw LoxRuntimeError(expr.name, "Only instances have fields")
+        }
+
+        val value = evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
     }
 
     fun executeBlock(statements: List<Stmt?>, environment: Environment) {

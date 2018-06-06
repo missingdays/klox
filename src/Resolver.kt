@@ -3,12 +3,18 @@ import java.util.*
 
 class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
     private enum class FunctionType {
-        NONE, FUNCTION
+        NONE, FUNCTION, METHOD, INIT
+    }
+
+    private enum class ClassType {
+        NONE, CLASS
     }
 
     private val interpreter : Interpreter
     private val scopes = Stack<MutableMap<String, Boolean>>()
+
     private var currentFunction = FunctionType.NONE
+    private var currentClass = ClassType.NONE
 
     constructor(interpreter: Interpreter) {
         this.interpreter = interpreter
@@ -87,6 +93,10 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
         }
 
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INIT) {
+                parseError(stmt.keyword, "Cannot return value from 'init'")
+            }
+
             resolve(stmt.value)
         }
 
@@ -133,6 +143,49 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
     }
 
     override fun visitLiteralExpr(expr: Expr.Literal): Void? {
+        return null
+    }
+
+    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+        declare(stmt.name)
+        define(stmt.name)
+
+        val enclosingClass = currentClass
+        currentClass = ClassType.CLASS
+
+        beginScope()
+        scopes.peek().put("this", true)
+
+        for (method in stmt.methods) {
+            val declaration = if (method.name.lexeme == "init") FunctionType.INIT else FunctionType.METHOD
+
+            resolveFunction(method, declaration)
+        }
+
+        endScope()
+
+        currentClass = enclosingClass
+
+        return null
+    }
+
+    override fun visitThisExpr(expr: Expr.This): Void? {
+        if (currentClass == ClassType.NONE) {
+            parseError(expr.keyword, "Cannot use this outside of a class")
+        }
+
+        resolveLocal(expr, expr.keyword)
+        return null
+    }
+
+    override fun visitGetExpr(expr: Expr.Get): Void? {
+        resolve(expr.obj)
+        return null
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Void? {
+        resolve(expr.value)
+        resolve(expr.obj)
         return null
     }
 
