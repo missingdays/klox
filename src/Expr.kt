@@ -9,6 +9,7 @@ abstract class Expr {
     fun visitLiteralExpr (expr: Literal) : R?
     fun visitLogicalExpr (expr: Logical) : R?
     fun visitSetExpr (expr: Set) : R?
+    fun visitSuperExpr (expr: Super) : R?
     fun visitThisExpr (expr: This) : R?
     fun visitUnaryExpr (expr: Unary) : R?
     fun visitVariableExpr (expr: Variable) : R?
@@ -119,6 +120,19 @@ abstract class Expr {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitSetExpr(this)
+    }
+  }
+
+  class Super : Expr {
+    val keyword: Token
+    val method: Token
+    constructor(keyword: Token, method: Token) {
+      this.keyword = keyword
+      this.method = method
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitSuperExpr(this)
     }
   }
 

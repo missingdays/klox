@@ -73,6 +73,13 @@ class Parser {
 
     private fun classDeclaration() : Stmt {
         val name = consume(TokenType.IDENTIFIER, "Expected class name")
+
+        var superclass: Expr.Variable? = null
+        if (match(TokenType.LESS)) {
+            consume(TokenType.IDENTIFIER, "Expect superclass name")
+            superclass = Expr.Variable(previous())
+        }
+
         consume(TokenType.LEFT_BRACE, "Expected '{' after class name")
 
         val methods = ArrayList<Stmt.Function>()
@@ -83,7 +90,7 @@ class Parser {
 
         consume(TokenType.RIGHT_BRACE, "Expected '}' after class body")
 
-        return Stmt.Class(name, methods)
+        return Stmt.Class(name, superclass, methods)
     }
 
     private fun statement() : Stmt {
@@ -361,6 +368,13 @@ class Parser {
 
         if (match(TokenType.THIS)) {
             return Expr.This(previous())
+        }
+
+        if (match(TokenType.SUPER)) {
+            val keyword = previous()
+            consume(TokenType.DOT, "Expected '.' after super")
+            val method = consume(TokenType.IDENTIFIER, "Expected superclass method name")
+            return Expr.Super(keyword, method)
         }
 
         if (match(TokenType.LEFT_PAREN)) {

@@ -1,15 +1,21 @@
 class LoxClass : LoxCallable {
     val name: String
+    val superclass: LoxClass?
     private val methods: MutableMap<String, LoxFunction>
 
-    constructor(name: String, methods: MutableMap<String, LoxFunction>) {
+    constructor(name: String, superclass: LoxClass?, methods: MutableMap<String, LoxFunction>) {
         this.name = name
+        this.superclass = superclass
         this.methods = methods
     }
 
     fun findMethod(instance: LoxInstance, name: String) : LoxFunction? {
         if (methods.containsKey(name)) {
             return methods[name]?.bind(instance)
+        }
+
+        if (superclass != null) {
+            return superclass.findMethod(instance, name)
         }
 
         return null

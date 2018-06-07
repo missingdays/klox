@@ -7,7 +7,7 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
     }
 
     private enum class ClassType {
-        NONE, CLASS
+        NONE, CLASS, SUBCLASS
     }
 
     private val interpreter : Interpreter
@@ -153,6 +153,14 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
         val enclosingClass = currentClass
         currentClass = ClassType.CLASS
 
+        if (stmt.superclass != null) {
+            currentClass = ClassType.SUBCLASS
+            resolve(stmt.superclass)
+
+            beginScope()
+            scopes.peek().put("super", true)
+        }
+
         beginScope()
         scopes.peek().put("this", true)
 
@@ -164,6 +172,10 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
 
         endScope()
 
+        if (stmt.superclass != null) {
+            endScope()
+        }
+
         currentClass = enclosingClass
 
         return null
@@ -172,6 +184,17 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
     override fun visitThisExpr(expr: Expr.This): Void? {
         if (currentClass == ClassType.NONE) {
             parseError(expr.keyword, "Cannot use this outside of a class")
+        }
+
+        resolveLocal(expr, expr.keyword)
+        return null
+    }
+
+    override fun visitSuperExpr(expr: Expr.Super): Void? {
+        if (currentClass == ClassType.NONE) {
+            parseError(expr.keyword, "Cannot use 'super' outside of class")
+        } else if (currentClass != ClassType.SUBCLASS) {
+            parseError(expr.keyword, "Cannot use 'super' in a class with no superclass")
         }
 
         resolveLocal(expr, expr.keyword)

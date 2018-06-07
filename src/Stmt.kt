@@ -25,9 +25,11 @@ abstract class Stmt {
 
   class Class : Stmt {
     val name: Token
+    val superclass: Expr.Variable?
     val methods: List<Stmt.Function>
-    constructor(name: Token, methods: List<Stmt.Function>) {
+    constructor(name: Token, superclass: Expr.Variable?, methods: List<Stmt.Function>) {
       this.name = name
+      this.superclass = superclass
       this.methods = methods
     }
 
