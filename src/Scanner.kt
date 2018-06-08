@@ -62,6 +62,8 @@ class Scanner {
             c == '+' -> addToken(TokenType.PLUS)
             c == ';' -> addToken(TokenType.SEMICOLON)
             c == '*' -> addToken(TokenType.STAR)
+            c == '?' -> addToken(TokenType.QUESTION)
+            c == ':' -> addToken(TokenType.COLON)
             c == '!' -> addToken(if (match('=')) TokenType.BANG_EQUAL else TokenType.BANG)
             c == '=' -> addToken(if (match('=')) TokenType.EQUAL_EQUAL else TokenType.EQUAL)
             c == '<' -> addToken(if (match('=')) TokenType.LESS_EQUAL else TokenType.LESS)

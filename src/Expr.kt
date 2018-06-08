@@ -4,6 +4,7 @@ abstract class Expr {
     fun visitAssignExpr (expr: Assign) : R?
     fun visitBinaryExpr (expr: Binary) : R?
     fun visitCallExpr (expr: Call) : R?
+    fun visitElvisExpr (expr: Elvis) : R?
     fun visitGetExpr (expr: Get) : R?
     fun visitGroupingExpr (expr: Grouping) : R?
     fun visitLiteralExpr (expr: Literal) : R?
@@ -55,6 +56,21 @@ abstract class Expr {
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 
       return visitor.visitCallExpr(this)
+    }
+  }
+
+  class Elvis : Expr {
+    val condition: Expr
+    val thenExpr: Expr?
+    val elseExpr: Expr
+    constructor(condition: Expr, thenExpr: Expr?, elseExpr: Expr) {
+      this.condition = condition
+      this.thenExpr = thenExpr
+      this.elseExpr = elseExpr
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitElvisExpr(this)
     }
   }
 

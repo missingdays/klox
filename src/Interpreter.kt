@@ -306,6 +306,28 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
         return value
     }
 
+    override fun visitElvisExpr(expr: Expr.Elvis): Any? {
+        var result: Any? = null
+
+        if (expr.thenExpr == null) {
+            result = evaluate(expr.condition)
+
+            if (!isTruthy(result)) {
+                return evaluate(expr.elseExpr)
+            } else {
+                return result
+            }
+        } else {
+            val condition = evaluate(expr.condition)
+
+            if (isTruthy(condition)) {
+                return evaluate(expr.thenExpr)
+            } else {
+                return evaluate(expr.elseExpr)
+            }
+        }
+    }
+
     fun executeBlock(statements: List<Stmt?>, environment: Environment) {
         val previous = this.environment
 

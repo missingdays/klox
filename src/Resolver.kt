@@ -212,6 +212,13 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
         return null
     }
 
+    override fun visitElvisExpr(expr: Expr.Elvis): Void? {
+        resolve(expr.condition)
+        if (expr.thenExpr != null) resolve(expr.thenExpr)
+        resolve(expr.elseExpr)
+        return null
+    }
+
     private fun declare(name: Token) {
         if (scopes.isEmpty()) {
             return

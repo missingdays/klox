@@ -209,7 +209,7 @@ class Parser {
     }
 
     private fun assignment() : Expr {
-        val expr = or()
+        val expr = elvis()
 
         if (match(TokenType.EQUAL)) {
             val equals = previous()
@@ -223,6 +223,24 @@ class Parser {
             }
 
             error(equals, "Invalid assignment target")
+        }
+
+        return expr
+    }
+
+    private fun elvis() : Expr {
+        var expr = or()
+
+        if (match(TokenType.QUESTION)) {
+            if (match(TokenType.COLON)) {
+                val elseExpr = elvis()
+                return Expr.Elvis(expr, null, elseExpr)
+            } else {
+                val thenExpr = elvis()
+                consume(TokenType.COLON, "Expected ':' after then statement in elvis operator")
+                val elseExpr = elvis()
+                return Expr.Elvis(expr, thenExpr, elseExpr)
+            }
         }
 
         return expr
