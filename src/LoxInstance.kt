@@ -23,7 +23,23 @@ class LoxInstance {
         fields.put(name.lexeme, value)
     }
 
-    override fun toString(): String {
+    override fun toString() : String {
         return loxClass.name + " instance"
+    }
+
+    fun convertToString(interpreter: Interpreter) : String {
+        val userMethod = loxClass.findMethod(this, "toString")
+
+        if (userMethod == null || userMethod.arity() != 0) {
+            return this.toString()
+        }
+
+        val str = userMethod.call(interpreter, emptyList())
+
+        if (str !is String) {
+            return this.toString()
+        }
+
+        return str
     }
 }

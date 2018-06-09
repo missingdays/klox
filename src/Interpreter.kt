@@ -163,7 +163,12 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
     override fun visitPrintStmt(stmt: Stmt.Print): Void? {
         val value = evaluate(stmt.expression)
-        println(stringify(value))
+
+        if (value is LoxInstance){
+            println(value.convertToString(this))
+        } else {
+            println(stringify(value))
+        }
         return null
     }
 
@@ -417,4 +422,5 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
         return obj.toString()
     }
+
 }
