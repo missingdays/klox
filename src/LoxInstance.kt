@@ -36,10 +36,6 @@ class LoxInstance {
 
         val str = userMethod.call(interpreter, emptyList())
 
-        if (str !is String) {
-            return this.toString()
-        }
-
-        return str
+        return interpreter.stringify(str)
     }
 }

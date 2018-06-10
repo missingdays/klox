@@ -122,14 +122,14 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
             }
             TokenType.PLUS -> {
                 if (left is Double && right is Double) {
-                    return (left as Double) + (right as Double)
+                    return left + right
                 }
 
-                if (left is String && right is String) {
-                    return (left as String) + (right as String)
+                if ((left is Double || left is String) && (right is Double || right is String)) {
+                    return "${stringify(left)}${stringify(right)}"
                 }
 
-                throw LoxRuntimeError(expr.operator, "Operands must be two numbers or two strings")
+                throw LoxRuntimeError(expr.operator, "Operands must be numbers or strings")
             }
 
             TokenType.GREATER       -> {
@@ -405,7 +405,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
         throw LoxRuntimeError(operator, "Operands must be numbers")
     }
 
-    private fun stringify(obj: Any?) : String {
+    fun stringify(obj: Any?) : String {
         if (obj == null) {
             return "nil"
         }
