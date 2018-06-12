@@ -251,11 +251,11 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
     }
 
 
-    private fun resolve(statement: Stmt) {
+    fun resolve(statement: Stmt) {
         statement.accept(this)
     }
 
-    private fun resolve(expr: Expr) {
+    fun resolve(expr: Expr) {
         expr.accept(this)
     }
 

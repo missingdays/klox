@@ -13,6 +13,7 @@ class Parser {
 
         while (!isAtEnd()) {
             val decl = declaration()
+
             if (decl != null) {
                 statements.add(decl)
             }

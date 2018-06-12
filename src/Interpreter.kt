@@ -48,6 +48,10 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
         }
     }
 
+    fun interpret(expr: Expr) : Any? {
+        return evaluate(expr)
+    }
+
     fun resolve(expr: Expr, depth: Int) {
         locals.put(expr, depth)
     }

@@ -36,30 +36,37 @@ private fun runPrompt() {
 
     while (true) {
         print("> ")
-        run(reader.readLine())
+        run(reader.readLine(), replMode = true)
         hadError = false
     }
 }
 
-private fun run(source: String) {
+private fun run(source: String, replMode: Boolean = false) {
     val scanner = Scanner(source)
     val tokens = scanner.scanTokens()
 
     val parser = Parser(tokens)
-    val statements = parser.parse()
+    val parseResult = parser.parse()
 
     if (hadError) {
         return
     }
 
     val resolver = Resolver(interpreter)
-    resolver.resolve(statements)
+    resolver.resolve(parseResult)
 
     if (hadError) {
         return
     }
 
-    interpreter.interpret(statements)
+    val res = parseResult[0]
+
+    if (replMode && parseResult.size == 1 && res is Stmt.Expression) {
+        val result = interpreter.interpret(res.expression)
+        println(result)
+    } else {
+        interpreter.interpret(parseResult)
+    }
 
     if (hadError) return
 }
@@ -84,4 +91,5 @@ fun error(line: Int, message: String) {
 
 fun report(line: Int, where: String, message: String) {
     println("[line $line] Error$where: $message")
+    hadError = true
 }
