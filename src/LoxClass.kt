@@ -1,4 +1,4 @@
-class LoxClass : LoxCallable {
+open class LoxClass : LoxCallable {
     val name: String
     val superclass: LoxClass?
     private val methods: MutableMap<String, LoxFunction>

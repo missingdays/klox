@@ -19,6 +19,14 @@ class LoxInstance {
         throw LoxRuntimeError(name, "Undefined property ${name.lexeme}")
     }
 
+    fun get(name: String) : Any? {
+        return get(Token(TokenType.IDENTIFIER, name, name, -1))
+    }
+
+    fun set(name: String, value: Any?){
+        fields.put(name, value)
+    }
+
     fun set(name: Token, value: Any?) {
         fields.put(name.lexeme, value)
     }

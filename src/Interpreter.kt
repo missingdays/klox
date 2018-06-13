@@ -36,6 +36,97 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
                 return number.toDouble()
             }
         })
+
+        addArray()
+    }
+
+    fun addArray() {
+        val methods = HashMap<String, LoxFunction>()
+        val innerArrayName = "__lox_inner_array"
+
+        methods["init"] = object : LoxFunction(null, globals, true) {
+            override fun arity(): Int {
+                return 0
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                (this.closure.getAt(0, "this") as LoxInstance).set(innerArrayName, ArrayList<Any?>())
+                return null
+            }
+
+            override fun bind(instance: LoxInstance): LoxFunction {
+                this.closure = Environment(globals)
+                this.closure.define("this", instance)
+                return this
+            }
+        }
+
+        methods["get"] = object : LoxFunction(null, globals, false) {
+            override fun arity(): Int {
+                return 1
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                val index = (arguments[0] as Double).toInt()
+
+                val array = (this.closure.getAt(0, "this") as LoxInstance).get(innerArrayName) as ArrayList<Any?>
+
+                if (index >= array.size){
+                    throw LoxRuntimeError(Token(TokenType.IDENTIFIER, "array.get", null, 0), "Index of out range")
+                }
+
+                return array[index]
+            }
+
+            override fun bind(instance: LoxInstance): LoxFunction {
+                this.closure = Environment(globals)
+                this.closure.define("this", instance)
+                return this
+            }
+        }
+
+        methods["set"] = object : LoxFunction(null, globals, false) {
+            override fun arity(): Int {
+                return 2
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                val index = arguments[0] as Int
+                val value = arguments[1]
+
+                val array = this.closure.getAt(0, innerArrayName) as ArrayList<Any?>
+
+                array[index] = value
+
+                return null
+            }
+        }
+
+        methods["append"] = object : LoxFunction(null, globals, false) {
+            override fun arity(): Int {
+                return 1
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                val value = arguments[0]
+
+                val array = (this.closure.getAt(0, "this") as LoxInstance).get(innerArrayName) as ArrayList<Any?>
+                array.add(value)
+                return null
+            }
+
+            override fun bind(instance: LoxInstance): LoxFunction {
+                this.closure = Environment(globals)
+                this.closure.define("this", instance)
+                return this
+            }
+
+            override fun toString(): String {
+                return "<array.append>"
+            }
+        }
+
+        globals.define("array", LoxClass("array", null, methods))
     }
 
     fun interpret(statements: List<Stmt>) {
@@ -218,11 +309,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     override fun visitCallExpr(expr: Expr.Call): Any? {
         val callee = evaluate(expr.callee)
 
-        val arguments = ArrayList<Any?>()
-
-        for (argument in expr.arguments) {
-            arguments.add(evaluate(argument))
-        }
+        val arguments = expr.arguments.map { evaluate(it)}
 
         if (callee !is LoxCallable) {
             throw LoxRuntimeError(expr.paren, "Can only call functions and classes")
@@ -260,7 +347,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
 
         val methods = HashMap<String, LoxFunction>()
         for (method in stmt.methods) {
-            val function = LoxFunction(method, environment, method.name.lexeme == "name")
+            val function = LoxFunction(method, environment, method.name.lexeme == "init")
             methods.put(method.name.lexeme, function)
         }
 

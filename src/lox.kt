@@ -36,7 +36,12 @@ private fun runPrompt() {
 
     while (true) {
         print("> ")
-        run(reader.readLine(), replMode = true)
+        try {
+            run(reader.readLine(), replMode = true)
+        } catch (error: LoxRuntimeError) {
+            println(error.message)
+        }
+
         hadError = false
     }
 }
