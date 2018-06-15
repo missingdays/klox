@@ -1,7 +1,7 @@
 open class LoxClass : LoxCallable {
     val name: String
-    val superclass: LoxClass?
-    private val methods: MutableMap<String, LoxFunction>
+    private val superclass: LoxClass?
+    protected val methods: MutableMap<String, LoxFunction>
 
     constructor(name: String, superclass: LoxClass?, methods: MutableMap<String, LoxFunction>) {
         this.name = name

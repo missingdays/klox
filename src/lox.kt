@@ -68,7 +68,7 @@ private fun run(source: String, replMode: Boolean = false) {
 
     if (replMode && parseResult.size == 1 && res is Stmt.Expression) {
         val result = interpreter.interpret(res.expression)
-        println(result)
+        println(interpreter.stringify(result))
     } else {
         interpreter.interpret(parseResult)
     }

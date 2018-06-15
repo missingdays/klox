@@ -52,6 +52,10 @@ open class LoxFunction : LoxCallable {
         return declaration.parameters.size
     }
 
+    protected fun getThis() : LoxInstance {
+        return closure.getAt(0, "this") as LoxInstance
+    }
+
     override fun toString(): String {
         if (declaration == null) {
             return "<fn>"
