@@ -7,6 +7,8 @@ abstract class Stmt {
     fun visitFunctionStmt (stmt: Function) : R?
     fun visitPrintStmt (stmt: Print) : R?
     fun visitReturnStmt (stmt: Return) : R?
+    fun visitBreakStmt (stmt: Break) : R?
+    fun visitContinueStmt (stmt: Continue) : R?
     fun visitIfStmt (stmt: If) : R?
     fun visitVarStmt (stmt: Var) : R?
     fun visitWhileStmt (stmt: While) : R?
@@ -88,6 +90,28 @@ abstract class Stmt {
     }
   }
 
+  class Break : Stmt {
+    val keyword: Token
+    constructor(keyword: Token) {
+      this.keyword = keyword
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitBreakStmt(this)
+    }
+  }
+
+  class Continue : Stmt {
+    val keyword: Token
+    constructor(keyword: Token) {
+      this.keyword = keyword
+    }
+
+    override fun<R> accept(visitor: Visitor<R>) : R? { 
+      return visitor.visitContinueStmt(this)
+    }
+  }
+
   class If : Stmt {
     val condition: Expr
     val thenBranch: Stmt
@@ -119,9 +143,11 @@ abstract class Stmt {
   class While : Stmt {
     val condition: Expr
     val body: Stmt
-    constructor(condition: Expr, body: Stmt) {
+    val increment: Stmt?
+    constructor(condition: Expr, body: Stmt, increment: Stmt?) {
       this.condition = condition
       this.body = body
+      this.increment = increment
     }
 
     override fun<R> accept(visitor: Visitor<R>) : R? { 

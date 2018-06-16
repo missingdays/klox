@@ -219,6 +219,14 @@ class Resolver : Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
         return null
     }
 
+    override fun visitBreakStmt(stmt: Stmt.Break): Void? {
+        return null
+    }
+
+    override fun visitContinueStmt(stmt: Stmt.Continue): Void? {
+        return null
+    }
+
     private fun declare(name: Token) {
         if (scopes.isEmpty()) {
             return

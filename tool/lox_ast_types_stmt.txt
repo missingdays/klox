@@ -4,6 +4,8 @@ Expression: expression: Expr
 Function: name: Token, parameters: List<Token>, body: List<Stmt>
 Print: expression: Expr
 Return: keyword: Token, value: Expr?
+Break: keyword: Token
+Continue: keyword: Token
 If: condition: Expr, thenBranch: Stmt, elseBranch: Stmt?
 Var: name: Token, initializer: Expr?
-While: condition: Expr, body: Stmt
+While: condition: Expr, body: Stmt, increment: Stmt?

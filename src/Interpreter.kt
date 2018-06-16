@@ -195,11 +195,21 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     }
 
     override fun visitWhileStmt(stmt: Stmt.While): Void? {
-        while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body)
-        }
+        try {
+            while (isTruthy(evaluate(stmt.condition))) {
+                execute(stmt.body)
+            }
+        } catch (breakException : Break) {}
 
         return null
+    }
+
+    override fun visitBreakStmt(stmt: Stmt.Break): Void? {
+        throw Break()
+    }
+
+    override fun visitContinueStmt(stmt: Stmt.Continue): Void? {
+        throw Continue()
     }
 
     override fun visitLogicalExpr(expr: Expr.Logical): Any? {

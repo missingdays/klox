@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.WhitespaceStrippingElementMatcher
-
 class Scanner {
     val source: String
     val tokens: MutableList<Token> = ArrayList()
@@ -24,7 +22,9 @@ class Scanner {
             "this" to TokenType.THIS,
             "true" to TokenType.TRUE,
             "var" to TokenType.VAR,
-            "while" to TokenType.WHILE
+            "while" to TokenType.WHILE,
+            "break" to TokenType.BREAK,
+            "continue" to TokenType.CONTINUE
     )
 
     constructor(source: String) {

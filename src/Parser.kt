@@ -119,6 +119,14 @@ class Parser {
             return returnStatement()
         }
 
+        if (match(TokenType.BREAK)) {
+            return breakStatement()
+        }
+
+        if (match(TokenType.CONTINUE)) {
+            return continueStatement()
+        }
+
         return expressionStatement()
     }
 
@@ -129,7 +137,19 @@ class Parser {
 
         val body = statement()
 
-        return Stmt.While(condition, body)
+        return Stmt.While(condition, body, null)
+    }
+
+    private fun breakStatement() : Stmt {
+        val stmt = Stmt.Break(previous())
+        consume(TokenType.SEMICOLON, "Expected ';' after break")
+        return stmt
+    }
+
+    private fun continueStatement() : Stmt {
+        val stmt = Stmt.Continue(previous())
+        consume(TokenType.SEMICOLON, "Expected ';' after continue")
+        return stmt
     }
 
     private fun forStatement() : Stmt {
@@ -143,15 +163,17 @@ class Parser {
         consume(TokenType.RIGHT_PAREN, "Expected ')' after 'for' clause")
 
         var body = statement()
-
-        if (increment != null) {
-            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
-        }
+        val incrementStatement = if (increment != null) Stmt.Expression(increment) else null
 
         if (condition == null) {
             condition = Expr.Literal(true)
         }
-        body = Stmt.While(condition, body)
+
+        if (incrementStatement != null) {
+            body = Stmt.Block(listOf(body, incrementStatement))
+        }
+
+        body = Stmt.While(condition, body, incrementStatement)
 
         if (initializer != null) {
             body = Stmt.Block(listOf(initializer, body))
