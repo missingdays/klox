@@ -137,7 +137,7 @@ class Parser {
 
         val body = statement()
 
-        return Stmt.While(condition, body, null)
+        return Stmt.While(condition, body, null, null)
     }
 
     private fun breakStatement() : Stmt {
@@ -169,15 +169,7 @@ class Parser {
             condition = Expr.Literal(true)
         }
 
-        if (incrementStatement != null) {
-            body = Stmt.Block(listOf(body, incrementStatement))
-        }
-
-        body = Stmt.While(condition, body, incrementStatement)
-
-        if (initializer != null) {
-            body = Stmt.Block(listOf(initializer, body))
-        }
+        body = Stmt.While(condition, body, initializer, incrementStatement)
 
         return body
     }

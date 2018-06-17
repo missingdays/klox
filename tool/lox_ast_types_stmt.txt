@@ -8,4 +8,4 @@ Break: keyword: Token
 Continue: keyword: Token
 If: condition: Expr, thenBranch: Stmt, elseBranch: Stmt?
 Var: name: Token, initializer: Expr?
-While: condition: Expr, body: Stmt, increment: Stmt?
+While: condition: Expr, body: Stmt, initializer: Stmt?, increment: Stmt?

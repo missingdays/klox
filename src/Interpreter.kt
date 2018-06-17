@@ -195,9 +195,20 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
     }
 
     override fun visitWhileStmt(stmt: Stmt.While): Void? {
+        if (stmt.initializer != null) {
+            execute(stmt.initializer)
+        }
+
         try {
             while (isTruthy(evaluate(stmt.condition))) {
-                execute(stmt.body)
+                try {
+                    execute(stmt.body)
+                } catch (continueException : Continue){}
+                finally {
+                    if (stmt.increment != null) {
+                        execute(stmt.increment)
+                    }
+                }
             }
         } catch (breakException : Break) {}
 
@@ -263,7 +274,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
                 throw LoxRuntimeError(stmt.superclass.name, "Superclass must be a class")
             }
 
-            environment = Environment(environment)
+            newScope()
             environment.define("super", superclass)
         }
 
@@ -277,7 +288,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
         val loxClass = LoxClass(stmt.name.lexeme, superclass as LoxClass?, methods)
 
         if (superclass != null) {
-            environment = environment.enclosing!!
+            endScope()
         }
 
         environment.assign(stmt.name, loxClass)
@@ -344,6 +355,14 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
                 return evaluate(expr.elseExpr)
             }
         }
+    }
+
+    private fun newScope() {
+        environment = Environment(environment)
+    }
+
+    private fun endScope() {
+        environment = environment.enclosing!!
     }
 
     fun executeBlock(statements: List<Stmt?>, environment: Environment) {

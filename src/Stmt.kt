@@ -143,10 +143,12 @@ abstract class Stmt {
   class While : Stmt {
     val condition: Expr
     val body: Stmt
+    val initializer: Stmt?
     val increment: Stmt?
-    constructor(condition: Expr, body: Stmt, increment: Stmt?) {
+    constructor(condition: Expr, body: Stmt, initializer: Stmt?, increment: Stmt?) {
       this.condition = condition
       this.body = body
+      this.initializer = initializer
       this.increment = increment
     }
 

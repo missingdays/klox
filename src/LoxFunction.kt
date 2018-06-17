@@ -44,7 +44,6 @@ open class LoxFunction : LoxCallable {
     }
 
     override fun arity(): Int {
-        println("why?")
         if (declaration == null) {
             return 0
         }
