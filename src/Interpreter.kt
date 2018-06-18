@@ -37,6 +37,26 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Void> {
             }
         })
 
+        globals.define("len", object : LoxCallable {
+            override fun arity(): Int {
+                return 1
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+                val value = arguments[0]
+
+                if (value is String) {
+                    return value.length
+                }
+
+                if (value is List<Any?>) {
+                    return value.size
+                }
+
+                return 0
+            }
+        })
+
 
         globals.define("array", LoxArray(globals))
     }
